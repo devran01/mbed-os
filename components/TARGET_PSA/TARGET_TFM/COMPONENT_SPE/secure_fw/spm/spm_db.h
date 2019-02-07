@@ -62,6 +62,11 @@ struct spm_partition_desc_t {
 #endif
 #ifdef TFM_PSA_API
     struct tfm_thrd_ctx sp_thrd;
+    /*
+     * stack_limit points to starting address of the partitions' stack plus the partitions' stack size.
+     */
+    uint32_t stack_limit;
+    uint32_t stack_size;
 #endif
 };
 
