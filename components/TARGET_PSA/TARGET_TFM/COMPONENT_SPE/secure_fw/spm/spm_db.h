@@ -73,7 +73,7 @@ struct spm_partition_desc_t {
 /* Macros to pick linker symbols and allow to form the partition data base */
 #define REGION(a, b, c) a##b##c
 #define REGION_NAME(a, b, c) REGION(a, b, c)
-#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
+#if (TFM_LVL == 1) && defined(TFM_PSA_API)
 #define REGION_DECLARE(a, b, c)
 #else
 #define REGION_DECLARE(a, b, c) extern uint32_t REGION_NAME(a, b, c)

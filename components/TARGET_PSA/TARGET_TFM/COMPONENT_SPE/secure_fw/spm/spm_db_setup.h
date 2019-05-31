@@ -38,7 +38,7 @@ struct spm_partition_db_t {
         data.partition_priority = TFM_PRIORITY(priority);                     \
     } while (0)
 
-#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
+#if (TFM_LVL == 1) && defined(TFM_PSA_API)
 #define PARTITION_INIT_MEMORY_DATA(data, partition)
 #else
 #define PARTITION_INIT_MEMORY_DATA(data, partition)                            \
