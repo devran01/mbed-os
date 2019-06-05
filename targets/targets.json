@@ -2121,7 +2121,9 @@
             "MBED_MPU_CUSTOM",
             "DAUTH_CHIP_DEFAULT",
             "MBEDTLS_PSA_CRYPTO_SPM",
-            "MBEDTLS_PSA_CRYPTO_C"
+            "MBEDTLS_PSA_CRYPTO_C",
+            "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES",
+            "MBEDTLS_PSA_INJECT_ENTROPY"
         ],
         "components_add": ["FLASHIAP"],
         "extra_labels_add": [
@@ -5471,7 +5473,9 @@
             "DAUTH_CHIP_DEFAULT",
             "MBEDTLS_PSA_CRYPTO_SPM",
             "MBEDTLS_PSA_CRYPTO_C",
-            "MBEDTLS_ENTROPY_NV_SEED"
+            "MBEDTLS_ENTROPY_NV_SEED",
+            "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES",
+            "MBEDTLS_PSA_INJECT_ENTROPY"
         ],
         "components_add": ["FLASHIAP"],
         "extra_labels_add": ["MUSCA_A1_S", "PSA", "TFM"],
@@ -8311,7 +8315,9 @@
             "MBED_TICKLESS",
             "MBEDTLS_PSA_CRYPTO_SPM",
             "MBEDTLS_PSA_CRYPTO_C",
-            "PU_ENABLE"
+            "PU_ENABLE",
+            "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES",
+            "MBEDTLS_PSA_INJECT_ENTROPY"
         ],
         "deliver_to_target": "CY8CKIT_062_WIFI_BT_PSA",
         "delivery_dir": "TARGET_Cypress/TARGET_PSOC6/TARGET_CY8CKIT_062_WIFI_BT_PSA/prebuilt",
@@ -8335,7 +8341,9 @@
         "extra_labels_add": ["PSA", "MBED_SPM"],
         "components_add": ["SPM_MAILBOX", "FLASHIAP"],
         "device_has_remove": ["CRC"],
-        "macros_add": ["MBEDTLS_PSA_CRYPTO_C"],
+        "macros_add": [
+            "MBEDTLS_PSA_CRYPTO_C"
+        ],
         "hex_filename": "psa_release_1.0.hex",
         "overrides": {
             "secure-rom-start": "0x10000000",
