@@ -24,6 +24,7 @@ import sys
 import shutil
 import subprocess
 import logging
+import tempfile
 
 ROOT = abspath(join(dirname(__file__), os.pardir, os.pardir))
 sys.path.insert(0, ROOT)
@@ -34,7 +35,7 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%H:%M:%S')
 logger = logging.getLogger('TF-M-Builder')
 
-TF_M_BUILD_DIR = abspath(join(ROOT, os.pardir, 'tfm_build_dir'))
+TF_M_BUILD_DIR = None
 VERSION_FILE_PATH = join(ROOT, 'features/FEATURE_PSA/TARGET_TFM')
 
 dependencies = {
@@ -50,7 +51,7 @@ dependencies = {
 
 def is_cmake_installed():
     """
-    Check if cmake is installed
+    Check if Cmake is installed
     """
     command = ['cmake', '--version']
     return(run_cmd_and_return_errorcode(command))
@@ -171,7 +172,7 @@ def clone_tfm_repo(commit):
     check_and_clone_repo('mbed-crypto', dependencies)
     check_and_clone_repo('CMSIS_5', dependencies)
     detect_and_write_tfm_version(join(TF_M_BUILD_DIR, 'trusted-firmware-m'),
-                                  commit)
+                                 commit)
 
 def clean_up_cloned_repos():
     """
@@ -233,7 +234,7 @@ def get_mbed_supported_tfm_targets():
     logger.debug("Found the following TF-M targets: {}".format(
                                                 ', '.join(tfm_secure_targets)))
 
-    return [get_target_info(t) for t in tfm_secure_targets]
+    return (get_target_info(t) for t in tfm_secure_targets)
 
 def commit_changes(directory, target=None, toolchain=None):
     """
@@ -260,7 +261,7 @@ def commit_changes(directory, target=None, toolchain=None):
         if target:
             logger.info("Committing image for %s" % target)
             msg = '--message="Updated secure binary for %s (%s)"' % (target,
-                                                                    toolchain)
+                                                                     toolchain)
         else:
             logger.info("Committing changes in directory %s" % directory)
             msg = '--message="Updated directory %s "' % directory
@@ -291,6 +292,8 @@ def run_cmake_build(configure, cmake_build_dir, bl_supported= None,
             cmake_cmd.append('-DBL2=False')
         cmake_cmd.append('..')
     else:
+        # install option exports NS APIs to a dedicated folder under
+        # cmake build folder
         cmake_cmd = ['cmake', '--build', '.', '--', 'install']
 
     proc = subprocess.Popen(cmake_cmd, stdout=subprocess.PIPE,
@@ -304,6 +307,114 @@ def run_cmake_build(configure, cmake_build_dir, bl_supported= None,
         logger.info(std_err.decode("utf-8"))
     return proc.returncode
 
+def build_tfm(args):
+    clone_tfm_repo(args.commit)
+
+    cmake_build_dir = join(TF_M_BUILD_DIR, 'trusted-firmware-m',
+                            'cmake_build')
+    if not isdir(cmake_build_dir):
+        os.mkdir(cmake_build_dir)
+
+    debug = False
+    if args.mcu:
+        tgt = None
+        if args.toolchain:
+            msg = "Building TF-M for target %s using toolchain %s" % (
+                                            args.mcu, args.toolchain)
+            logger.info(msg)
+            tgt = get_target_info(args.mcu, args.toolchain)
+        else:
+            tgt = get_target_info(args.mcu)
+            msg = "Building TF-M for target %s using default toolchain %s" % (
+                                                            args.mcu, tgt[2])
+            logger.info(msg)
+
+        if args.debug:
+            debug = True
+
+        retcode = run_cmake_build(True, cmake_build_dir, tgt[4],
+                                    tgt[1], tgt[2], debug)
+        if retcode:
+            msg = "Cmake configure failed for target %s using toolchain %s" % (
+                                                    tgt[0],  tgt[2])
+            logger.critical(msg)
+            sys.exit(1)
+
+        retcode = run_cmake_build(False, cmake_build_dir)
+        if retcode:
+            msg = "Cmake build failed for target %s using toolchain %s" % (
+                                                    tgt[0],  tgt[2])
+            logger.critical(msg)
+            sys.exit(1)
+
+        output_dir = None
+        if(tgt[3].endswith('/')):
+            output_dir = tgt[3]
+        else:
+            output_dir = tgt[3] + '/'
+        tfm_secure_bin = join(cmake_build_dir, 'install', 'outputs',
+                                tgt[1], 'tfm_s.bin')
+        logger.info("Copying %s to %s" % (relpath(tfm_secure_bin, ROOT)
+                                            ,relpath(output_dir, ROOT)))
+        shutil.copy2(tfm_secure_bin, output_dir)
+        tfm_secure_bin = join(cmake_build_dir, 'install', 'outputs',
+                                tgt[1], 'tfm_s.axf')
+        logger.info("Copying %s to %s" % (relpath(tfm_secure_bin, ROOT)
+                                            ,relpath(output_dir, ROOT)))
+        shutil.copy2(tfm_secure_bin, output_dir)
+
+        if args.commit:
+            commit_changes(tgt[3], tgt[0], tgt[2])
+    else:
+        for tgt in get_mbed_supported_tfm_targets():
+            msg = "Building TF-M for target %s using default toolchain %s" % (
+                                                        tgt[0], tgt[2])
+            logger.info(msg)
+
+            if args.debug:
+                debug = True
+
+            retcode = run_cmake_build(True, cmake_build_dir, tgt[4],
+                                        tgt[1], tgt[2], debug)
+            if retcode:
+                msg = "Cmake configure failed for target %s with toolchain %s" % (
+                                                        tgt[0], tgt[2])
+                logger.critical(msg)
+                sys.exit(1)
+            retcode = run_cmake_build(False, cmake_build_dir)
+            if retcode:
+                msg = "Cmake build failed for target %s using toolchain %s" % (
+                                                    tgt[0],  tgt[2])
+                logger.critical(msg)
+                sys.exit(1)
+
+            output_dir = None
+            if(tgt[3].endswith('/')):
+                output_dir = tgt[3]
+            else:
+                output_dir = tgt[3] + '/'
+
+            tfm_secure_bin = join(cmake_build_dir, 'install', 'outputs'
+                                    ,tgt[1], 'tfm_s.bin')
+            logger.info("Copying %s to %s" % (relpath(tfm_secure_bin,
+                                    ROOT), relpath(output_dir, ROOT)))
+            shutil.copy2(tfm_secure_bin, output_dir)
+            tfm_secure_bin = join(cmake_build_dir, 'install', 'outputs'
+                                    , tgt[1], 'tfm_s.axf')
+            logger.info("Copying %s to %s" % (relpath(tfm_secure_bin,
+                                    ROOT), relpath(output_dir, ROOT)))
+            shutil.copy2(tfm_secure_bin, output_dir)
+
+            if args.commit:
+                commit_changes(tgt[3], tgt[0], tgt[2])
+
+def clean_build_directory(build_dir):
+    cmake_build_dir = join(build_dir, 'trusted-firmware-m', 'cmake_build')
+    if isdir(cmake_build_dir):
+        logger.info("Removing Cmake build directory %s" %
+                                                    relpath(cmake_build_dir))
+        shutil.rmtree(cmake_build_dir)
+
 def get_parser():
     parser = argparse.ArgumentParser()
 
@@ -311,7 +422,7 @@ def get_parser():
                         help="Build for the given MCU",
                         default=None,
                         choices=get_tfm_secure_targets())
-    hmsg = "Build for the given tool chain (default is tfm_default_toolchain)"
+    hmsg = "Build for the given toolchain (default is tfm_default_toolchain)"
     parser.add_argument("-t", "--toolchain",
                         help=hmsg,
                         default=None,
@@ -327,46 +438,41 @@ def get_parser():
                         default=False,
                         help="Print supported TF-M secure targets")
 
-    parser.add_argument("--clone",
-                        help="Clone TF-M git repo and its dependencies",
-                        action="store_true",
-                        default=False)
-
     parser.add_argument("--commit",
                         help="Create a git commit for each platform",
                         action="store_true",
                         default=False)
 
+    parser.add_argument("--develop",
+                        help="""Use this option for development. A new folder
+                        (tfm_build_dir) under the parent folder of Mbed OS is
+                        used as tf-m build folder.
+                        By default, temporary folder provided by
+                        tempfile.mkdtemp() is used.
+                        """,
+                        action="store_true",
+                        default=False)
+
     parser.add_argument("--clean-build",
-                        help="Remove cmake build directory",
+                        help="Remove Cmake build directory",
                         action="store_true",
                         default=False)
 
     parser.add_argument("-v", "--verbose",
-                        help="Verbose output",
+                        help="Verbose output including build logs",
                         action="store_true",
                         default=False)
 
     return parser
 
-def clean_build_directory():
-    cmake_build_dir = join(TF_M_BUILD_DIR, 'trusted-firmware-m', 'cmake_build')
-    if isdir(cmake_build_dir):
-        logger.info("Removing cmake build directory %s" %
-                                                    relpath(cmake_build_dir))
-        shutil.rmtree(cmake_build_dir)
-
 def main():
     """
-    Build Trusted Firmware M (TF-M) image for mbed-os supported TF-M targets
+    Build TrustedFirmware-M (TF-M) image for supported Mbed OS targets
     """
 
+    global TF_M_BUILD_DIR
     parser = get_parser()
     args = parser.parse_args()
-
-    if args.clean_build:
-        clean_build_directory()
-        return
 
     if args.verbose:
         logger.setLevel(logging.DEBUG)
@@ -376,99 +482,27 @@ def main():
                             ', '.join([t for t in get_tfm_secure_targets()])))
         return
 
-    if not isdir(TF_M_BUILD_DIR):
-        os.mkdir(TF_M_BUILD_DIR)
-
-    clone_tfm_repo(args.commit)
-    if args.clone:
-        return
-
-    cmake_build_dir = join(TF_M_BUILD_DIR, 'trusted-firmware-m', 'cmake_build')
-    if not isdir(cmake_build_dir):
-        os.mkdir(cmake_build_dir)
-
-    debug = False
-    if args.mcu:
-        tgt = None
-        if args.toolchain:
-            msg = "Building TF-M for target %s using toolchain %s" % (args.mcu,
-                                                                args.toolchain)
-            logger.info(msg)
-            tgt = get_target_info(args.mcu, args.toolchain)
-        else:
-            tgt = get_target_info(args.mcu)
-            msg = "Building TF-M for target %s using default toolchain %s" % (
-                                                            args.mcu, tgt[2])
-            logger.info(msg)
-
-        if args.debug:
-            debug = True
-
-        retcode = run_cmake_build(True, cmake_build_dir, tgt[4], tgt[1],
-                                  tgt[2], debug)
-        if retcode:
-            msg = "Cmake configure failed for target %s using toolchain %s" % (
-                                                            tgt[0],  tgt[2])
+    if not args.develop:
+        if args.clean_build:
+            msg = "--clean-build option can only be used with --develop option"
             logger.critical(msg)
-            sys.exit(1)
-
-        retcode = run_cmake_build(False, cmake_build_dir)
-        if retcode:
-            msg = "Cmake build failed for target %s using toolchain %s" % (
-                                                            tgt[0],  tgt[2])
-            logger.critical(msg)
-            sys.exit(1)
-
-        output_dir = None
-        if(tgt[3].endswith('/')):
-            output_dir = tgt[3]
-        else:
-            output_dir = tgt[3] + '/'
-        tfm_secure_bin = join(cmake_build_dir, 'install', 'outputs', tgt[1],
-                              'tfm_s.bin')
-        logger.info("Copying %s to %s" % (relpath(tfm_secure_bin, ROOT),
-                                                   relpath(output_dir, ROOT)))
-        shutil.copy2(tfm_secure_bin, output_dir)
-
-        if args.commit:
-            commit_changes(tgt[3], tgt[0], tgt[2])
+            return
+        with tempfile.TemporaryDirectory() as TF_M_BUILD_DIR:
+            logger.info("Using temporary folder %s" % TF_M_BUILD_DIR)
+            build_tfm(args)
     else:
-        for tgt in get_mbed_supported_tfm_targets():
-            msg = "Building TF-M for target %s using default toolchain %s" % (
-                                                                tgt[0], tgt[2])
-            logger.info(msg)
-
-            if args.debug:
-                debug = True
-
-            retcode = run_cmake_build(True, cmake_build_dir, tgt[4], tgt[1],
-                                      tgt[2], debug)
-            if retcode:
-                msg = "Cmake configure failed for target %s with toolchain %s" % (
-                                                                tgt[0], tgt[2])
-                logger.critical(msg)
-                sys.exit(1)
-            retcode = run_cmake_build(False, cmake_build_dir)
-            if retcode:
-                msg = "Cmake build failed for target %s using toolchain %s" % (
-                                                            tgt[0],  tgt[2])
-                logger.critical(msg)
-                sys.exit(1)
-
-            output_dir = None
-            if(tgt[3].endswith('/')):
-                output_dir = tgt[3]
+        if args.clean_build:
+            if TF_M_BUILD_DIR is not None:
+                clean_build_directory(TF_M_BUILD_DIR)
             else:
-                output_dir = tgt[3] + '/'
+                logger.info("Build directory doesn't exists. Exiting...")
+            return
 
-            tfm_secure_bin = join(cmake_build_dir, 'install', 'outputs',
-                                  tgt[1], 'tfm_s.bin')
-            logger.info("Copying %s to %s" % (relpath(tfm_secure_bin, ROOT),
-                                                    relpath(output_dir, ROOT)))
-            shutil.copy2(tfm_secure_bin, output_dir)
+        TF_M_BUILD_DIR = abspath(join(ROOT, os.pardir, 'tfm_build_dir'))
+        if not isdir(TF_M_BUILD_DIR):
+            os.mkdir(TF_M_BUILD_DIR)
 
-            if args.commit:
-                commit_changes(tgt[3], tgt[0], tgt[2])
+        build_tfm(args)
 
 if __name__ == '__main__':
     if is_git_installed() != 0:
@@ -476,6 +510,6 @@ if __name__ == '__main__':
     elif is_git_lfs_installed() != 0:
         logger.error('"git-lfs" is not installed. Exiting...')
     elif is_cmake_installed() != 0:
-        logger.error('"cmake" is not installed. Exiting...')
+        logger.error('"Cmake" is not installed. Exiting...')
     else:
         main()
