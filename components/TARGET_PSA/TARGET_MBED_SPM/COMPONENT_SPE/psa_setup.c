@@ -395,6 +395,18 @@ spm_rot_service_t platform_rot_services[] = {
             .tail = NULL
         }
     },
+    {
+        .sid = PSA_PLATFORM_IOCTL,
+        .mask = PSA_PLATFORM_IOCTL_MSK,
+        .partition = NULL,
+        .min_version = 1,
+        .min_version_policy = PSA_MINOR_VERSION_POLICY_RELAXED,
+        .allow_nspe = true,
+        .queue = {
+            .head = NULL,
+            .tail = NULL
+        }
+    },
 };
 
 /* External SIDs used by PLATFORM */
@@ -1006,7 +1018,7 @@ void smoke_tests_part1_init(spm_partition_t *partition)
 
 /****************** SPM DB initialization *************************************/
 spm_partition_t g_partitions[] = {
-    /* ATTEST_SRV */
+/* ATTEST_SRV */
     {
         .partition_id = ATTEST_SRV_ID,
         .thread_id = 0,
@@ -1018,7 +1030,7 @@ spm_partition_t g_partitions[] = {
         .irq_mapper = NULL,
     },
 
-    /* CRYPTO_SRV */
+/* CRYPTO_SRV */
     {
         .partition_id = CRYPTO_SRV_ID,
         .thread_id = 0,
@@ -1030,7 +1042,7 @@ spm_partition_t g_partitions[] = {
         .irq_mapper = NULL,
     },
 
-    /* PLATFORM */
+/* PLATFORM */
     {
         .partition_id = PLATFORM_ID,
         .thread_id = 0,
@@ -1042,7 +1054,7 @@ spm_partition_t g_partitions[] = {
         .irq_mapper = NULL,
     },
 
-    /* ITS */
+/* ITS */
     {
         .partition_id = ITS_ID,
         .thread_id = 0,

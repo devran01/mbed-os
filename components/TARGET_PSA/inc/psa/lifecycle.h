@@ -22,6 +22,7 @@
 @brief This file describes the PSA RoT Lifecycle API
 */
 
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "mbed_toolchain.h"
@@ -71,6 +72,24 @@ psa_status_t mbed_psa_reboot_and_request_new_security_state(uint32_t new_state);
  * This API requests system reset to be carried out by SPE once all critical secure tasks are finished.
  */
 MBED_NORETURN void mbed_psa_system_reset();
+
+/*!
+ * \enum tfm_platform_err_t
+ *
+ * \brief Platform service error types
+ *
+ */
+enum tfm_platform_err_t {
+    TFM_PLATFORM_ERR_SUCCESS = 0,
+    TFM_PLATFORM_ERR_SYSTEM_ERROR,
+    TFM_PLATFORM_ERR_INVALID_PARAM,
+    TFM_PLATFORM_ERR_NOT_SUPPORTED,
+
+    /* Following entry is only to ensure the error code of int size */
+    TFM_PLATFORM_ERR_FORCE_INT_SIZE = INT_MAX
+};
+
+typedef int32_t tfm_platform_ioctl_req_t;
 
 #ifdef   __cplusplus
 }
