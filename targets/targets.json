@@ -5793,7 +5793,7 @@
         "inherits": ["Target"],
         "default_toolchain": "ARMC6",
         "extra_labels": ["ARM_SSG", "MUSCA_A1"],
-        "forced_reset_timeout": 7,
+        "forced_reset_timeout": 13,
         "release_versions": ["5"]
     },
     "ARM_MUSCA_A1_NS": {
