@@ -26,5 +26,8 @@
  * mutex creation in an efficient way.
  */
 #define OS_MUTEX_OBJ_MEM    1
+#define OS_SEMAPHORE_OBJ_MEM 1
+#define OS_THREAD_OBJ_MEM 1
+#define OS_THREAD_USER_STACK_SIZE 4096
 
 #endif  /* MBED_MBED_RTX_H */
