@@ -196,7 +196,6 @@ def _clone_tfm_repo(commit):
     :param commit: If True then commit VERSION.txt
     """
     _check_and_clone_repo('trusted-firmware-m', dependencies)
-    _check_and_clone_repo('mbedtls', dependencies)
     _check_and_clone_repo('mbed-crypto', dependencies)
     _check_and_clone_repo('CMSIS_5', dependencies)
     _detect_and_write_tfm_version(join(TF_M_BUILD_DIR, 'trusted-firmware-m'),
@@ -327,8 +326,10 @@ def _run_cmake_build(cmake_build_dir, debug, tgt):
         cmake_cmd.append('-DCMAKE_BUILD_TYPE=Debug')
     else:
         cmake_cmd.append('-DCMAKE_BUILD_TYPE=Release')
-    if TARGET_MAP[tgt[0]].tfm_bootloader_supported:
+    if not TARGET_MAP[tgt[0]].tfm_bootloader_supported:
         cmake_cmd.append('-DBL2=False')
+    else:
+        cmake_cmd.append('-DBL2=True')
     cmake_cmd.append('..')
 
     retcode = _run_cmd_output_realtime(cmake_cmd, cmake_build_dir)
@@ -392,26 +393,46 @@ def _copy_binaries(source, destination, toolchain, target):
             _run_cmd_and_return(cmd)
 
             logger.info("Copying %s to %s" % (relpath(tfm_secure_bin, ROOT),
-                                            relpath(output_dir, ROOT)))
+                                              relpath(output_dir, ROOT)))
             shutil.copy2(tfm_secure_bin, output_dir)
 
-def _copy_tfm_ns_files(source):
+    if TARGET_MAP[target].tfm_bootloader_supported:
+        mcu_bin = join(source, 'mcuboot.bin')
+        shutil.copy2(mcu_bin, output_dir)
+
+    if "TFM_V8M" in TARGET_MAP[target].extra_labels:
+        install_dir = abspath(join(source, os.pardir, os.pardir))
+        tfm_veneer = join(install_dir, "export", "tfm", "veneers",
+                          "s_veneers.o")
+        shutil.copy2(tfm_veneer, output_dir)
+
+def _copy_tfm_ns_files(source, target):
     """
     Copy TF-M NS API files into Mbed OS
     :param source: Source directory containing TF-M NS API files
     """
-    with open(join(dirname(__file__), "tfm_ns_import.json")) as ns_import:
-        json_data = json.load(ns_import)
-        data_files = json_data["files"]
-        data_folders = json_data["folders"]
-        logger.info("Copying NS API source from TF-M to Mbed OS")
-        for f in data_files:
+    def copy_files(files):
+        for f in files:
             src_file = join(source, f["src_file"])
             dst_file = join(ROOT, f["dst_file"])
             if not isdir(dirname(dst_file)):
                 os.makedirs(dirname(dst_file))
-            shutil.copy2(src_file, dst_file)
-        for folder in data_folders:
+            try:
+                shutil.copy2(src_file, dst_file)
+            except FileNotFoundError:
+                # Workaround: TF-M build process exports all NS API files to
+                # cmake build folder. The json file `tfm_ns_import.json` contains
+                # list of files and folder relative to cmake build folder. 
+                # But it doesn't export following files tfm_multi_core_api.c,
+                # tfm_multi_core_psa_ns_api.c, tfm_ns_mailbox.c. These files
+                # along with the OS abstraction layer app/os_wrapper_cmsis_rtos_v2.c
+                # are handled as an exception.
+                # https://developer.trustedfirmware.org/T642
+                src_file = join(source, os.pardir, f["src_file"])
+                shutil.copy2(src_file, dst_file)
+
+    def copy_folders(folders):
+        for folder in folders:
             src_folder = join(source, folder["src_folder"])
             dst_folder = join(ROOT, folder["dst_folder"])
             if not isdir(dst_folder):
@@ -419,6 +440,19 @@ def _copy_tfm_ns_files(source):
             for f in os.listdir(src_folder):
                 if os.path.isfile(join(src_folder, f)):
                     shutil.copy2(join(src_folder, f), join(dst_folder, f))
+
+    with open(join(dirname(__file__), "tfm_ns_import.json")) as ns_import:
+        json_data = json.load(ns_import)
+        logger.info("Copying NS API source from TF-M to Mbed OS")
+        copy_files(json_data["files"]["common"])
+        if "TFM_V8M" in TARGET_MAP[target].extra_labels:
+            copy_files(json_data["files"]["v8-m"])
+        if "TFM_TWINCPU" in TARGET_MAP[target].extra_labels:
+            copy_files(json_data["files"]["dualcpu"])
+
+        copy_folders(json_data["folders"]["common"])
+        if "TFM_TWINCPU" in TARGET_MAP[target].extra_labels:
+            copy_folders(json_data["folders"]["dualcpu"])
 
 def _build_tfm(args):
     """
@@ -431,9 +465,9 @@ def _build_tfm(args):
     cmake_build_dir = join(TF_M_BUILD_DIR, 'trusted-firmware-m', 'cmake_build')
     if not isdir(cmake_build_dir):
         os.mkdir(cmake_build_dir)
-    else:
-        shutil.rmtree(cmake_build_dir)
-        os.mkdir(cmake_build_dir)
+    # else:
+    #     shutil.rmtree(cmake_build_dir)
+    #     os.mkdir(cmake_build_dir)
 
     if args.mcu:
         if args.toolchain:
@@ -475,7 +509,7 @@ def _build_tfm(args):
         if args.commit:
             _commit_changes(tgt[3], tgt_list)
 
-    _copy_tfm_ns_files(cmake_build_dir)
+    _copy_tfm_ns_files(cmake_build_dir, tgt[0])
 
 def _exit_gracefully(signum, frame):
     """
