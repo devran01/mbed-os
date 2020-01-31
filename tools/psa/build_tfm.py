@@ -330,6 +330,7 @@ def _run_cmake_build(cmake_build_dir, debug, tgt):
         cmake_cmd.append('-DBL2=FALSE')
     else:
         cmake_cmd.append('-DBL2=True')
+    cmake_cmd.append('-DENABLE_PLATFORM_SERVICE_TESTS=FALSE')
     cmake_cmd.append('..')
 
     retcode = _run_cmd_output_realtime(cmake_cmd, cmake_build_dir)
