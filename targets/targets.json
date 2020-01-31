@@ -12665,10 +12665,10 @@
     },
     "CY8CKIT_064S2_4343W": {
         "inherits": [
-            "MCU_PSOC6_M4",
-            "PSA_DUAL_CORE_NSPE"
+            "PSA_DUAL_CORE_NSPE",
+            "MCU_PSOC6_M4"
         ],
-        "features": [
+        "features_add": [
             "BLE"
         ],
         "components_add": [
