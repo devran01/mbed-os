@@ -327,9 +327,10 @@ def _run_cmake_build(cmake_build_dir, debug, tgt):
     else:
         cmake_cmd.append('-DCMAKE_BUILD_TYPE=Release')
     if not TARGET_MAP[tgt[0]].tfm_bootloader_supported:
-        cmake_cmd.append('-DBL2=False')
+        cmake_cmd.append('-DBL2=FALSE')
     else:
         cmake_cmd.append('-DBL2=True')
+    cmake_cmd.append('-DENABLE_PLATFORM_SERVICE_TESTS=FALSE')
     cmake_cmd.append('..')
 
     retcode = _run_cmd_output_realtime(cmake_cmd, cmake_build_dir)
@@ -465,9 +466,9 @@ def _build_tfm(args):
     cmake_build_dir = join(TF_M_BUILD_DIR, 'trusted-firmware-m', 'cmake_build')
     if not isdir(cmake_build_dir):
         os.mkdir(cmake_build_dir)
-    # else:
-    #     shutil.rmtree(cmake_build_dir)
-    #     os.mkdir(cmake_build_dir)
+    else:
+        shutil.rmtree(cmake_build_dir)
+        os.mkdir(cmake_build_dir)
 
     if args.mcu:
         if args.toolchain:
