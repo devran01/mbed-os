@@ -36,7 +36,7 @@ static inline int32_t get_mailbox_msg_handle(uint8_t idx,
                                              mailbox_msg_handle_t *handle)
 {
     if ((idx >= NUM_MAILBOX_QUEUE_SLOT) || !handle) {
-        return MAILBOX_MSG_NULL_HANDLE;
+        return MAILBOX_INVAL_PARAMS;
     }
 
     *handle = (mailbox_msg_handle_t)(idx + 1);
