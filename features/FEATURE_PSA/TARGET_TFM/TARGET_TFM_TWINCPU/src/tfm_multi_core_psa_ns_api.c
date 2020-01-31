@@ -17,7 +17,7 @@
 #include "tfm_ns_mailbox.h"
 
 /*
- * FIXME
+ * TODO
  * Currently, force all the non-secure client to share the same ID.
  *
  * It requires a more clear mechanism to synchronize the non-secure client
@@ -33,14 +33,15 @@
 #define NON_SECURE_CLIENT_ID            (1)
 
 /*
- * FIXME
- * Require a formal defnition of errors related to mailbox in PSA client call.
+ * TODO
+ * Require a formal definition of errors related to mailbox in PSA client call.
  */
 #define PSA_INTER_CORE_COMM_ERR         (INT32_MIN + 0xFF)
 
 static void mailbox_wait_reply(mailbox_msg_handle_t handle)
 {
-    while (!tfm_ns_mailbox_is_msg_replied(handle)) {};
+    while (!tfm_ns_mailbox_is_msg_replied(handle)) {
+    }
 }
 
 /**** API functions ****/
@@ -111,7 +112,7 @@ uint32_t psa_version(uint32_t sid)
     return version;
 }
 
-psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
+psa_handle_t psa_connect(uint32_t sid, uint32_t version)
 {
     struct psa_client_params_t params;
     mailbox_msg_handle_t handle;
@@ -119,7 +120,7 @@ psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
     int32_t ret;
 
     params.psa_connect_params.sid = sid;
-    params.psa_connect_params.minor_version = minor_version;
+    params.psa_connect_params.version = version;
 
     if (tfm_ns_multi_core_lock_acquire() != OS_WRAPPER_SUCCESS) {
         return PSA_NULL_HANDLE;

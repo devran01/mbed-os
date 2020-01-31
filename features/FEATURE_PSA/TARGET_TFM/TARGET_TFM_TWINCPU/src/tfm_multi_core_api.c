@@ -23,7 +23,7 @@ enum tfm_status_e tfm_ns_interface_init(void)
     return TFM_SUCCESS;
 }
 
-int tfm_ns_wait_for_s_cpu_ready(void)
+int32_t tfm_ns_wait_for_s_cpu_ready(void)
 {
     return tfm_platform_ns_wait_for_s_cpu_ready();
 }

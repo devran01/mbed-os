@@ -22,7 +22,7 @@ void *os_wrapper_thread_new(const char *name, int32_t stack_size,
 
     /* By default, the thread starts as osThreadDetached */
     if (stack_size != OS_WRAPPER_DEFAULT_STACK_SIZE) {
-        task_attribs.stack_size = stack_size;
+        //task_attribs.stack_size = stack_size;
     }
     task_attribs.name = name;
     task_attribs.priority = (osPriority_t) priority;

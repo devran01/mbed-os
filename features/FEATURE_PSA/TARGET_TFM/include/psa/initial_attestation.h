@@ -17,6 +17,8 @@
 
 #include <limits.h>
 #include <stdint.h>
+#include <stddef.h>
+#include "psa/crypto.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +45,9 @@ enum psa_attest_err_t {
     PSA_ATTEST_ERR_INIT_FAILED,
     /** Token buffer is too small to store the created token there */
     PSA_ATTEST_ERR_TOKEN_BUFFER_OVERFLOW,
-    /** Some of the mandatory claims are unavailable*/
+    /** Attestation key buffer is too small to store the obtained key there */
+    PSA_ATTEST_ERR_KEY_BUFFER_OVERFLOW,
+    /** Some of the mandatory claims are unavailable */
     PSA_ATTEST_ERR_CLAIM_UNAVAILABLE,
     /** Some parameter or combination of parameters are recognised as invalid:
      * - challenge size is not allowed
@@ -159,10 +163,6 @@ enum psa_attest_err_t {
  *                    cryptographic hash of 256 bits or stronger.Value is
  *                    encoded as byte string.
  *
- *     - Security epoch: Optional claim. It represents the security control
- *                    point of the software component. Value is encoded as
- *                    unsigned integer.
- *
  *     - Version:     Optional claim. It represents the issued software version.
  *                    Value is encoded as text string.
  *
@@ -220,6 +220,26 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
 enum psa_attest_err_t
 psa_initial_attest_get_token_size(uint32_t  challenge_size,
                                   uint32_t *token_size);
+
+/**
+ * \brief Get the initial attestation public key.
+ *
+ * \param[out]  public_key        Pointer to the buffer where the public key
+ *                                will be stored.
+ * \param[in]   key_buf_size      Size of allocated buffer for key, in bytes.
+ * \param[out]  public_key_len    Size of public key in bytes.
+ * \param[out]  public_key_curve  Type of the elliptic curve which the key
+ *                                belongs to.
+ *
+ * \note Currently only the ECDSA P-256 over SHA-256 algorithm is supported.
+ *
+ * \return Returns error code as specified in \ref psa_attest_err_t
+ */
+enum psa_attest_err_t
+tfm_initial_attest_get_public_key(uint8_t         *public_key,
+                                  size_t           public_key_buf_size,
+                                  size_t          *public_key_len,
+                                  psa_ecc_curve_t *elliptic_curve_type);
 
 #ifdef __cplusplus
 }
