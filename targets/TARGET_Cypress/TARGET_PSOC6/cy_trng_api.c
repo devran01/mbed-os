@@ -20,7 +20,7 @@
 #include "mbed_error.h"
 #include <string.h>
 
-#if DEVICE_TRNG
+#if DEVICE_TRNG && !FEATURE_PSA
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,4 +68,4 @@ int trng_get_bytes(trng_t *obj, uint8_t *output, size_t length, size_t *output_l
 }
 #endif
 
-#endif
+#endif //DEVICE_TRNG && !FEATURE_PSA
