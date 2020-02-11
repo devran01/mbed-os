@@ -45,6 +45,11 @@
 
 #elif defined(TARGET_MUSCA_A1)
 
+#define OS_MUTEX_OBJ_MEM    1
+#define OS_SEMAPHORE_OBJ_MEM 1
+#define OS_THREAD_OBJ_MEM 1
+#define OS_THREAD_USER_STACK_SIZE 4096
+
 #if defined(__ARMCC_VERSION)
     extern uint32_t               Image$$ARM_LIB_HEAP$$ZI$$Base[];
     extern uint32_t               Image$$ARM_LIB_HEAP$$ZI$$Length[];
