@@ -83,7 +83,7 @@ class GCC(mbedToolchain):
                     self.flags["ld"].append(minimal_printf_wrap)
 
         self.cpu = []
-        if target.is_TrustZone_non_secure_target:
+        if target.is_TFM_target:
             # Add linking time preprocessor macro DOMAIN_NS
             # (DOMAIN_NS is passed to compiler and assembler via CORTEX_SYMBOLS
             # in mbedToolchain.get_symbols)
