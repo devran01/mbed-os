@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, Arm Limited. All rights reserved.
+ * Copyright (c) 2017-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -145,6 +145,11 @@ uint32_t os_wrapper_mutex_delete(void *handle)
     return OS_WRAPPER_SUCCESS;
 }
 
+void *os_wrapper_thread_get_handle(void)
+{
+    return (void *)osThreadGetId();
+}
+
 uint32_t os_wrapper_thread_get_priority(void *handle, uint32_t *priority)
 {
     osPriority_t prio;
@@ -159,50 +164,7 @@ uint32_t os_wrapper_thread_get_priority(void *handle, uint32_t *priority)
     return OS_WRAPPER_SUCCESS;
 }
 
-uint32_t os_wrapper_current_thread_get_priority(uint32_t *priority)
+void os_wrapper_thread_exit(void)
 {
-    osPriority_t prio;
-    osThreadId_t _id = osThreadGetId();
-
-    if (_id == NULL) {
-        return OS_WRAPPER_ERROR;
-    }
-
-    prio = osThreadGetPriority(_id);
-    if (prio == osPriorityError) {
-        return OS_WRAPPER_ERROR;
-    }
-
-    *priority = (uint32_t)prio;
-
-    return OS_WRAPPER_SUCCESS;
-}
-
-uint32_t os_wrapper_thread_terminate(void *handle)
-{
-    osStatus_t status = osOK;
-
-    status = osThreadTerminate((osThreadId_t)handle);
-    if (status != osOK) {
-        return OS_WRAPPER_ERROR;
-    }
-
-    return OS_WRAPPER_SUCCESS;
-}
-
-uint32_t os_wrapper_current_thread_suspend(void)
-{
-    osStatus_t status = osOK;
-    osThreadId_t _id = osThreadGetId();
-
-    if (_id == NULL) {
-        return OS_WRAPPER_ERROR;
-    }
-
-    status = osThreadSuspend(_id);
-    if (status != osOK) {
-        return OS_WRAPPER_ERROR;
-    }
-
-    return OS_WRAPPER_SUCCESS;
+    osThreadExit();
 }

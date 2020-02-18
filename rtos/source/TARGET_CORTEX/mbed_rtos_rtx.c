@@ -33,10 +33,10 @@
 #endif
 
 #if defined(TARGET_TFM_TWINCPU)
-#include "FEATURE_PSA/TARGET_TFM/TARGET_TFM_TWINCPU/inc/tfm_multi_core_api.h"
-#include "FEATURE_PSA/TARGET_TFM/TARGET_TFM_TWINCPU/inc/tfm_ns_mailbox.h"
-#include "FEATURE_PSA/TARGET_TFM/TARGET_TFM_TWINCPU/inc/platform_multicore.h"
-#include "FEATURE_PSA/TARGET_TFM/include/tfm_ns_interface.h"
+#include "tfm_multi_core_api.h"
+#include "tfm_ns_mailbox.h"
+#include "platform_multicore.h"
+#include "tfm_ns_interface.h"
 #endif // defined(TARGET_TFM_TWINCPU)
 
 #if defined(FEATURE_NSPE) && defined(FEATURE_SPM_MAILBOX)
