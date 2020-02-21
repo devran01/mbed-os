@@ -48,7 +48,7 @@ upstream_tfm = 'https://git.trustedfirmware.org/trusted-firmware-m.git'
 patater_tfm = 'https://github.com/Patater/trusted-firmware-m.git'
 
 dependencies = {
-    "trusted-firmware-m": [patater_tfm, 'gnuarm921'],
+    "trusted-firmware-m": [patater_tfm, 'feature-dualcore'],
     "mbedtls": ['https://github.com/ARMmbed/mbedtls.git',
                 'mbedtls-2.7.9'],
     "mbed-crypto": ['https://github.com/ARMmbed/mbed-crypto.git',
@@ -477,9 +477,9 @@ def _build_tfm(args):
     cmake_build_dir = join(TF_M_BUILD_DIR, 'trusted-firmware-m', 'cmake_build')
     if not isdir(cmake_build_dir):
         os.mkdir(cmake_build_dir)
-    else:
-        shutil.rmtree(cmake_build_dir)
-        os.mkdir(cmake_build_dir)
+    # else:
+    #     shutil.rmtree(cmake_build_dir)
+    #     os.mkdir(cmake_build_dir)
 
     if args.mcu:
         if args.toolchain:
