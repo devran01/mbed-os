@@ -8552,7 +8552,6 @@
             "PSA_V8_M_NSPE",
             "Target"
         ],
-        "default_toolchain": "ARMC6",
         "extra_labels_add": [
             "ARM_SSG",
             "MUSCA_A1"
