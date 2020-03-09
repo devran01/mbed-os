@@ -45,8 +45,6 @@ def musca_tfm_bin(t_self, non_secure_bin, secure_bin):
     concatenated_bin = path_join(tempdir, 'tfm_' + ns_bin_name + ns_bin_ext)
     signed_bin = path_join(tempdir, 'tfm_' + ns_bin_name + '_signed' + ns_bin_ext)
 
-    print(signed_bin)
-
     assert os.path.isfile(image_macros)
 
     #1. Concatenate secure TFM and non-secure mbed binaries
