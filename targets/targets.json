@@ -93,6 +93,9 @@
         "extra_labels": [
             "MBED_PSA_SRV"
         ],
+        "macros_add": [
+            "MBEDTLS_PSA_HAS_ITS_IO"
+        ],
         "device_has": [
             "TRNG"
         ],
