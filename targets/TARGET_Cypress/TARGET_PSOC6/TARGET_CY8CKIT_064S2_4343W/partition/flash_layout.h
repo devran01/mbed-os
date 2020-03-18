@@ -137,9 +137,9 @@
 /* Specifies the smallest flash programmable unit in bytes */
 #define SST_FLASH_PROGRAM_UNIT  0x1
 /* The maximum asset size to be stored in the SST area */
-#define SST_MAX_ASSET_SIZE      2048
+#define SST_MAX_ASSET_SIZE      1024
 /* The maximum number of assets to be stored in the SST area */
-#define SST_NUM_ASSETS          10
+#define SST_NUM_ASSETS          20
 
 /* Internal Trusted Storage (ITS) Service definitions
  * Note: Further documentation of these definitions can be found in the

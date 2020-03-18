@@ -20,7 +20,7 @@
 #include "mbed_error.h"
 #include <string.h>
 
-#if DEVICE_TRNG
+#if !DEVICE_TRNG
 
 #ifdef __cplusplus
 extern "C" {
