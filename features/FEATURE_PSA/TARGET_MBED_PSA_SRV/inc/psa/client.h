@@ -25,6 +25,10 @@
 #include <stddef.h>
 #include "psa/error.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if !defined(UINT32_MAX)
 #define UINT32_MAX ((uint32_t)-1)
 #endif
@@ -142,6 +146,10 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type,
  *                                request.
  */
 void psa_close(psa_handle_t handle);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __MBED_OS_DEFAULT_PSA_CLIENT_API_H__
 #endif
