@@ -121,9 +121,9 @@
         ],
         "tfm_target_name": "",
         "tfm_bootloader_supported": "",
-        "tfm_default_toolchain": "ARMCLANG",
+        "tfm_default_toolchain": "GNUARM",
         "tfm_supported_toolchains": null,
-        "delivery_dir": "",
+        "tfm_delivery_dir": "",
         "public": false
     },
     "PSA_V8_M_NSPE": {
@@ -139,9 +139,9 @@
         ],
         "tfm_target_name": "",
         "tfm_bootloader_supported": "",
-        "tfm_default_toolchain": "ARMCLANG",
+        "tfm_default_toolchain": "GNUARM",
         "tfm_supported_toolchains": null,
-        "delivery_dir": "",
+        "tfm_delivery_dir": "",
         "public": false
     },
     "CM4_UARM": {
@@ -5948,19 +5948,16 @@
             "MUSCA_B1_NS",
             "TFM"
         ],
-        "features_add": [
-            "PSA"
-        ],
         "post_binary_hook": {
             "function": "ArmMuscaB1Code.binary_hook"
         },
         "secure_image_filename": "tfm_s.bin",
         "tfm_target_name": "MUSCA_B1",
         "tfm_bootloader_supported": true,
-        "tfm_default_toolchain": "ARMCLANG",
+        "tfm_default_toolchain": "GNUARM",
         "tfm_supported_toolchains": [
-            "ARMCLANG",
-            "GNUARM"
+            "GNUARM",
+            "ARMCLANG"
         ],
         "tfm_delivery_dir": "TARGET_ARM_SSG/TARGET_MUSCA_B1"
     },
