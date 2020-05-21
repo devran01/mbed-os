@@ -5928,12 +5928,12 @@
             "MBED_FAULT_HANDLER_DISABLED",
             "CMSIS_NVIC_VIRTUAL",
             "LPTICKER_DELAY_TICKS=3",
-            "MBED_MPU_CUSTOM"
+            "MBED_MPU_CUSTOM",
+            "BL2"
         ],
         "extra_labels_add": [
             "ARM_SSG",
-            "MUSCA_B1",
-            "MUSCA_B1_NS"
+            "MUSCA_B1"
         ],
         "post_binary_hook": {
             "function": "ArmMuscaB1Code.binary_hook"
