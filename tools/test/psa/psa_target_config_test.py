@@ -24,7 +24,7 @@ from tools.targets import TARGETS
 
 def test_psa_target_attributes():
     psa_targets = (tar for tar in TARGETS
-                   if tar.is_TFM_target)
+                   if tar.is_TFM_target and "TFM" in tar.labels)
 
     for tar in psa_targets:
         msg = "tfm_target_name attribute cannot be empty"
